@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const { connectDB } = require("./config/db");
 const apiRoutes = require("./routes");
+const cors = require("cors");
 
 dotenv.config();
 
@@ -10,6 +11,15 @@ connectDB();
 const PORT = process.env.PORT;
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 app.use("/api", apiRoutes);
