@@ -11,7 +11,7 @@ router.get("/me", authenticateUser, (req, res) => {
   res.json({ user: req.user });
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout", authenticateUser, (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: false,

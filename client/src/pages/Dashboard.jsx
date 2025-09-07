@@ -3,6 +3,7 @@ import Card from "../components/common/Card";
 import Toggle from "../components/common/Toggle";
 import Button from "../components/common/Button";
 import { toast } from "react-hot-toast";
+import axios from "axios";
 
 export default function Dashboard() {
   const [online, setOnline] = useState(true);
@@ -13,35 +14,58 @@ export default function Dashboard() {
     inapp: true,
   });
 
+  // Keep notify state in sync with online/offline mode
   useEffect(() => {
     if (online) {
       setNotify((n) => ({
         email: false,
         whatsapp: false,
         push: false,
-        inapp: n.inapp,
+        inapp: n.inapp, // preserve current inapp toggle
       }));
     } else {
-      setNotify((n) => ({ ...n, inapp: false }));
+      setNotify((n) => ({ ...n, inapp: false })); // disable inapp when offline
     }
   }, [online]);
 
+  // Visible toggles depend on online state
   const visibleToggles = useMemo(() => {
     if (online) return [{ key: "inapp", label: "In-app" }];
     return [
       { key: "email", label: "Email" },
       { key: "whatsapp", label: "WhatsApp" },
       { key: "push", label: "Push notification" },
+      { key: "sms", label: "SMS" },
     ];
   }, [online]);
 
   const setToggle = (key, val) => setNotify((n) => ({ ...n, [key]: val }));
 
+  // Selected preferences (only those set to true)
+  const selected = useMemo(
+    () =>
+      Object.entries(notify)
+        .filter(([_, v]) => v)
+        .map(([k]) => k),
+    [notify]
+  );
+
   // Handler for save action
-  const handleSave = () => {
-    // Implement save logic here (e.g., API call or state persistence)
-    toast.success("Changes saved!");
-    //alert("Changes saved!");
+  const handleSave = async () => {
+    const savingToast = toast.loading("Saving changes...");
+
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/notification/save`,
+        { preferences: notify }, // send the object
+        { withCredentials: true }
+      );
+
+      toast.success("Changes saved!", { id: savingToast });
+    } catch (err) {
+      console.error("Error saving notification prefs:", err);
+      toast.error("Failed to save changes", { id: savingToast });
+    }
   };
 
   return (
@@ -52,6 +76,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Notification preferences */}
         <Card title="Notification types">
           <div className="flex flex-wrap gap-2">
             {visibleToggles.map((t) => (
@@ -68,8 +93,17 @@ export default function Dashboard() {
               </p>
             )}
           </div>
+
+          {/* Show what user has chosen */}
+          <div className="mt-3 text-sm text-gray-700">
+            Selected:{" "}
+            {selected.length > 0
+              ? selected.join(", ")
+              : "No preferences chosen"}
+          </div>
         </Card>
 
+        {/* Online/Offline status */}
         <Card title="User activity">
           <div className="flex items-center gap-3">
             <Button
@@ -93,7 +127,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Save Changes Button - Stylish and Centered */}
+      {/* Save button */}
       <div className="flex justify-center mt-10 mb-2">
         <Button
           onClick={handleSave}
