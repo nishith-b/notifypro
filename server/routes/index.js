@@ -7,6 +7,4 @@ const router = express.Router();
 router.use("/user", userRoutes);
 router.use("/notification", notificationRoutes);
 
-module.exports = {
-  router,
-};
+module.exports = router;
