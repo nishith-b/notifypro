@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Card from "../components/common/Card";
 import Toggle from "../components/common/Toggle";
 import Button from "../components/common/Button";
+import { toast } from "react-hot-toast";
 
 export default function Dashboard() {
   const [online, setOnline] = useState(true);
@@ -35,6 +36,13 @@ export default function Dashboard() {
   }, [online]);
 
   const setToggle = (key, val) => setNotify((n) => ({ ...n, [key]: val }));
+
+  // Handler for save action
+  const handleSave = () => {
+    // Implement save logic here (e.g., API call or state persistence)
+    toast.success("Changes saved!");
+    //alert("Changes saved!");
+  };
 
   return (
     <main className="max-w-5xl px-4 py-8 mx-auto">
@@ -83,6 +91,16 @@ export default function Dashboard() {
               : "You are currently marked as Offline."}
           </p>
         </Card>
+      </div>
+
+      {/* Save Changes Button - Stylish and Centered */}
+      <div className="flex justify-center mt-10 mb-2">
+        <Button
+          onClick={handleSave}
+          className="px-8 py-3 text-lg font-semibold text-white transition-colors duration-200 bg-indigo-600 rounded-full shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        >
+          Save Changes
+        </Button>
       </div>
     </main>
   );

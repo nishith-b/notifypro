@@ -6,6 +6,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   return (
@@ -30,6 +31,8 @@ export default function App() {
           <footer className="max-w-5xl px-4 py-8 mx-auto text-xs text-center text-gray-500">
             Demo only. No real backend — data stored in your browser.
           </footer>
+          {/* Place Toaster inside here */}
+          <Toaster position="top-center" reverseOrder={false} />
         </div>
       </BrowserRouter>
     </AuthProvider>
