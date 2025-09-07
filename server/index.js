@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const { connectDB } = require("./config/db");
 const apiRoutes = require("./routes");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api", apiRoutes);
 

@@ -4,7 +4,6 @@ import Card from "../components/common/Card";
 import TextInput from "../components/common/TextInput";
 import Button from "../components/common/Button";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -28,22 +27,9 @@ export default function Login() {
     try {
       setLoading(true);
 
-      // ✅ Call backend API
-      const res = await axios.post(
-        `${apiUrl}/api/user/login`,
-        {
-          email: form.email,
-          password: form.password,
-        },
-        { withCredentials: true }
-      );
+      // Call backend API via context's login method
+      await login(form.email, form.password);
 
-      console.log(res);
-
-      // ✅ Save user in AuthContext
-      login(res.data.user);
-
-      // Redirect to dashboard
       navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error("Login error:", err);

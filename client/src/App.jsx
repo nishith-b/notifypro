@@ -15,7 +15,14 @@ export default function App() {
         <div className="min-h-screen bg-gray-50">
           <NavBar />
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route
@@ -28,10 +35,11 @@ export default function App() {
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+
           <footer className="max-w-5xl px-4 py-8 mx-auto text-xs text-center text-gray-500">
-            Demo only. No real backend — data stored in your browser.
+            Demo only. Now uses backend with JWT + cookies.
           </footer>
-          {/* Place Toaster inside here */}
+
           <Toaster position="top-center" reverseOrder={false} />
         </div>
       </BrowserRouter>

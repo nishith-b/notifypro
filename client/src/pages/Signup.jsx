@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-
-const apiUrl = import.meta.env.VITE_API_URL;
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[0-9]{10}$/;
@@ -33,20 +30,9 @@ export default function Signup() {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        `${apiUrl}/api/user/signup`,
-        {
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          password: form.password,
-        },
-        { withCredentials: true }
-      );
+      // Call context signup that handles backend call and sets user
+      await signup(form);
 
-      console.log("Signup success:", res.data);
-
-      signup(res.data.user);
       navigate("/dashboard", { replace: true });
     } catch (err) {
       console.error(err);
