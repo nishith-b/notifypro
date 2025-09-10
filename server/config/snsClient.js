@@ -1,7 +1,5 @@
-// snsClient.js
 const { SNSClient } = require("@aws-sdk/client-sns");
 
-// Create SNS client
 const snsClient = new SNSClient({
   region: process.env.AWS_REGION,
   credentials: {
@@ -10,4 +8,4 @@ const snsClient = new SNSClient({
   },
 });
 
-module.exports = { snsClient };
+module.exports = {snsClient};
