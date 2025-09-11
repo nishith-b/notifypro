@@ -4,8 +4,12 @@ const {
   DeleteMessageCommand,
 } = require("@aws-sdk/client-sqs");
 const dotenv = require("dotenv");
+const sgMail = require("@sendgrid/mail");
 
 dotenv.config();
+
+// Set SendGrid API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const client = new SQSClient({
   region: process.env.AWS_REGION,
@@ -27,24 +31,26 @@ async function init() {
       const { Messages } = await client.send(command);
 
       if (!Messages || Messages.length === 0) {
-        console.log(`No Message in Queue`);
+        console.log("No Message in Queue");
         continue;
       }
 
       for (const message of Messages) {
         try {
           const { MessageId, Body } = message;
-          console.log(`Message Received`, { MessageId, Body });
+          console.log("Message Received", { MessageId, Body });
 
           if (!Body) continue;
 
-          // Validate and Parse the event
-          const event = JSON.parse(Body);
-          console.log(event);
+          // Unwrap SNS envelope from SQS Body
+          const snsEnvelope = JSON.parse(Body);
 
-          // Ignore test event
-          if ("Service" in event && "Event" in event) {
-            if (event.Event === "s3:TestEvent") {
+          // Unwrap actual payload
+          const payload = JSON.parse(snsEnvelope.Message);
+
+          // Ignore S3 test event
+          if ("Service" in snsEnvelope && "Event" in snsEnvelope) {
+            if (snsEnvelope.Event === "s3:TestEvent") {
               await client.send(
                 new DeleteMessageCommand({
                   QueueUrl: process.env.SQS_QUEUE_URL,
@@ -56,10 +62,25 @@ async function init() {
             }
           }
 
-          // Your processing logic here
+          console.log("Sending email to:", payload.user.email);
+
+          // Prepare SendGrid email
+          const msg = {
+            to: payload.user.email,
+            from: "itsalrightnet@gmail.com", // Verified sender
+            subject: "Test mail from Nishith",
+            text: "Thank you for your time 😊",
+            html: "<strong>Easy to send emails with Node.js!</strong>",
+          };
+
+          const res = await sgMail.send(msg);
+          if (res) {
+            console.log("Email Sent!");
+          }
+
           console.log(`Processing message ${MessageId}...`);
 
-          // Delete after processing
+          // Delete message after processing
           await client.send(
             new DeleteMessageCommand({
               QueueUrl: process.env.SQS_QUEUE_URL,
@@ -77,7 +98,7 @@ async function init() {
       }
     } catch (pollError) {
       console.error("Error receiving messages from SQS:", pollError);
-      // small delay before retry to avoid tight loop on repeated errors
+      // Small delay before retry to avoid tight loop
       await new Promise((res) => setTimeout(res, 5000));
     }
   }
