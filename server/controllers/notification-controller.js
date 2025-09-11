@@ -2,12 +2,22 @@ const User = require("../model/user.js");
 const { PublishCommand } = require("@aws-sdk/client-sns");
 const { snsClient } = require("../config/snsClient.js");
 
-// Publish a message to SNS with the given channel
-async function publishMessage(channel) {
+// Publish a message to SNS with the given channel and user data
+async function publishMessage(channel, userData) {
   const params = {
-    TopicArn: "arn:aws:sns:ap-south-1:314146326314:notifypro-root.fifo",
-    Message: `Hello, this is a notification for ${channel}`,
-    MessageGroupId: "notify-group",
+    TopicArn: process.env.SNS_TOPIC_ARN,
+    Message: JSON.stringify({
+      channel,
+      user: {
+        id: userData._id,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        notificationPreferences: userData.notificationPreferences,
+      },
+      timestamp: new Date().toISOString(),
+    }),
+    MessageGroupId: "notify-group", // only needed if FIFO topic
     MessageDeduplicationId: Date.now().toString(),
     MessageAttributes: {
       channel: {
@@ -29,6 +39,7 @@ async function publishMessage(channel) {
 async function saveChanges(req, res) {
   try {
     const { preferences } = req.body;
+
     if (!preferences) {
       return res.status(400).json({ error: "Preferences are required" });
     }
@@ -70,15 +81,14 @@ async function sendNotification(req, res) {
       whatsapp: userData.notificationPreferences.whatsapp,
     };
 
-    if (preferences.email) publishMessage("email");
-    if (preferences.sms) publishMessage("sms");
-    if (preferences.push) publishMessage("push");
-    if (preferences.inapp) publishMessage("inapp");
-    if (preferences.whatsapp) publishMessage("whatsapp");
+    if (preferences.email) await publishMessage("email", userData);
+    if (preferences.sms) await publishMessage("sms", userData);
+    if (preferences.push) await publishMessage("push", userData);
+    if (preferences.inapp) await publishMessage("inapp", userData);
+    if (preferences.whatsapp) await publishMessage("whatsapp", userData);
 
     return res.json({
-      message:
-        "User preferences fetched successfully and notifications sent!",
+      message: "User preferences fetched successfully and notifications sent!",
       preferences,
     });
   } catch (error) {
